@@ -1,5 +1,17 @@
-# env files
-.env
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# venv for backend
+# env files
+.env*
+
+# python venv
 venv/
+
+# kaggle token
+.kaggle/
+
+# Python cache files
+__pycache__/
+*.pyc
