@@ -13,8 +13,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useEffect } from "react";
+// import { useState } from "react";
+// import { useEffect } from "react";
 
 const fileSchema = z.object({
   filePath: z
@@ -33,7 +33,7 @@ const fileSchema = z.object({
 });
 
 export default function FileUpload() {
-  const [filename, setFilename] = useState<string>("");
+  // const [filename, setFilename] = useState<string>("");
 
   const form = useForm<z.infer<typeof fileSchema>>({
     resolver: zodResolver(fileSchema),
@@ -42,7 +42,9 @@ export default function FileUpload() {
   const onSubmit = async (data: z.infer<typeof fileSchema>) => {
     const formData = new FormData();
     formData.append("file", data.filePath);
-    // console.log("formData is: ", formData);
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ", " + pair[1]);
+    }
 
     const res = await fetch("http://localhost:8000/upload", {
       method: "POST",
@@ -50,16 +52,17 @@ export default function FileUpload() {
     });
 
     const resJson = await res.json();
-    setFilename(resJson.filename);
-    console.log(`ResJson is: ${resJson} Filename is: ${filename}`);
+    console.log("ResJson for FileUpload is: ", resJson);
+    // setFilename(resJson.filename);
+    // console.log(`ResJson is: ${resJson} Filename is: ${filename}`);
   };
 
   // debug code just to check and display when filename is updated
-  useEffect(() => {
-    if (filename) {
-      console.log(`Updated filename is: ${filename}`);
-    }
-  }, [filename]);
+  // useEffect(() => {
+  //   if (filename) {
+  //     console.log(`Updated filename is: ${filename}`);
+  //   }
+  // }, [filename]);
 
   return (
     <Form {...form}>

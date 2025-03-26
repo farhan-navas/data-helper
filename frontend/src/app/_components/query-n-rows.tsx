@@ -19,12 +19,13 @@ import {
   TableBody,
   TableCaption,
   TableCell,
+  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 
 const formSchema = z.object({
-  query: z.number().int().positive(),
+  query: z.coerce.number().int().positive(),
 });
 
 export default function QueryNRows() {
@@ -39,14 +40,18 @@ export default function QueryNRows() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("queryN", data.query.toString());
+    formData.append("query", data.query.toString());
+    for (const pair of formData.entries()) {
+      console.log(pair[0] + ", " + pair[1]);
+    }
+
     const res = await fetch("http://localhost:8000/query-n-rows", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: formData,
     });
 
     const resJson = await res.json();
-    console.log("ResJson is: ", resJson);
+    console.log("ResJson for QueryNRows is: ", resJson);
     setTableData(resJson);
   };
 
@@ -59,11 +64,16 @@ export default function QueryNRows() {
             name="query"
             render={({ field }) => (
               <FormItem>
-                <FormLabel htmlFor={field.name} className="mb-2">
+                <FormLabel htmlFor="query-n" className="mb-2">
                   Query N rows:
                 </FormLabel>
                 <FormControl>
-                  <Input {...field} id={field.name} type="number" />
+                  <Input
+                    {...field}
+                    id="query-n"
+                    name={field.name}
+                    type="number"
+                  />
                 </FormControl>
                 <FormDescription>
                   Enter the number of rows to query!
@@ -76,11 +86,11 @@ export default function QueryNRows() {
       </Form>
       {tableData.length > 0 && (
         <Table>
-          <TableCaption>Data starting from the first row</TableCaption>
+          <TableCaption>Data starting from the first row:</TableCaption>
           <TableHeader>
             <TableRow>
               {Object.keys(tableData[0]).map((key) => (
-                <TableHeader key={key}>{key}</TableHeader>
+                <TableHead key={key}>{key}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -88,7 +98,7 @@ export default function QueryNRows() {
             {tableData.map((row, index) => (
               <TableRow key={index}>
                 {Object.values(row).map((value, index) => (
-                  <TableCell key={index}>{value}</TableCell>
+                  <TableCell key={index}>{String(value)}</TableCell>
                 ))}
               </TableRow>
             ))}

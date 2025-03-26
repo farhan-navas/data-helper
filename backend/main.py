@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile
+from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
@@ -18,7 +18,7 @@ app.add_middleware(
 UPLOAD_DIR="uploaded_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-app.state.filename = None
+app.state.filename = []
 
 class inputData(BaseModel):
     filename: str
@@ -43,12 +43,17 @@ async def upload_file(file: UploadFile):
         return {"error": "File format not supported"}
     df = read_fn(file_path)
 
-    app.state.filename = file.filename
+    app.state.filename.append(file.filename)
     return {"filename": file.filename, "shape": df.shape, "columns": df.columns.tolist()}
 
+@app.get("/get-filename")
+def get_filenames():
+    return app.state.filename
+
 @app.post("/query-n-rows")
-def get_top_rows(n: str):
-    filename = app.state.filename
+def get_top_rows(query: int = Form(...)):
+    filename = app.state.filename[0]
+    print(app.state.filename, filename)
     print(f"filename: {filename}")
     if filename is None:
         return {"error": "No file uploaded"}
@@ -59,5 +64,5 @@ def get_top_rows(n: str):
     df = read_fn(file_path)
     if df is None:
         return {"error": f"File {filename} not found"}
-    return df.head(int(n)).to_dict(orient="records")
+    return df.head(int(query)).to_dict(orient="records")
 
