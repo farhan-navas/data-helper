@@ -35,7 +35,7 @@ const formSchema = z.object({
   query: z.coerce.number().int().positive(),
 });
 
-export default function QueryNRows() {
+export default function PromptComponent() {
   const [files, setFiles] = useState<string[]>([]);
   const [tableData, setTableData] = useState([]);
 

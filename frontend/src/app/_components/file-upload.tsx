@@ -13,8 +13,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Navigation from "./navigation";
 // import { useState } from "react";
 // import { useEffect } from "react";
 
@@ -35,9 +35,6 @@ const fileSchema = z.object({
 });
 
 export default function FileUpload() {
-  // const [filename, setFilename] = useState<string>("");
-  const router = useRouter();
-
   const form = useForm<z.infer<typeof fileSchema>>({
     resolver: zodResolver(fileSchema),
   });
@@ -67,13 +64,6 @@ export default function FileUpload() {
       toast.error(`Error uploading file: ${errorMessage}`);
     }
   };
-
-  // debug code just to check and display when filename is updated
-  // useEffect(() => {
-  //   if (filename) {
-  //     console.log(`Updated filename is: ${filename}`);
-  //   }
-  // }, [filename]);
 
   return (
     <>
@@ -110,14 +100,7 @@ export default function FileUpload() {
           </Button>
         </form>
       </Form>
-      <div className="flex gap-2 m-auto align-middle items-center justify-center">
-        <div className="font-semibold text-gray-600">
-          Click here once done uploading your files!
-        </div>
-        <Button variant="outline" onClick={() => router.push("/query")}>
-          Query Datasets
-        </Button>
-      </div>
+      <Navigation />
     </>
   );
 }
