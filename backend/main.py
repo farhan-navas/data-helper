@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import numpy as np
 import pandas as pd
 import os
 
@@ -46,7 +47,7 @@ async def upload_file(file: UploadFile):
     app.state.filename.append(file.filename)
     return {"filename": file.filename, "shape": df.shape, "columns": df.columns.tolist()}
 
-@app.get("/get-filename")
+@app.get("/get-files")
 def get_filenames():
     return app.state.filename
 
@@ -64,5 +65,8 @@ def get_top_rows(query: int = Form(...)):
     df = read_fn(file_path)
     if df is None:
         return {"error": f"File {filename} not found"}
-    return df.head(int(query)).to_dict(orient="records")
+    
+    # handle NaN values in the df
+    cleaned = df.head(int(query)).replace({np.nan: None})
+    return cleaned.to_dict(orient="records")
 

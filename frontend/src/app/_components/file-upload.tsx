@@ -13,6 +13,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 // import { useState } from "react";
 // import { useEffect } from "react";
 
@@ -34,6 +36,7 @@ const fileSchema = z.object({
 
 export default function FileUpload() {
   // const [filename, setFilename] = useState<string>("");
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof fileSchema>>({
     resolver: zodResolver(fileSchema),
@@ -52,7 +55,8 @@ export default function FileUpload() {
     });
 
     const resJson = await res.json();
-    console.log("ResJson for FileUpload is: ", resJson);
+    // console.log("ResJson for FileUpload is: ", resJson);
+    toast(`File uploaded successfully! Filename: ${resJson.filename}`);
     // setFilename(resJson.filename);
     // console.log(`ResJson is: ${resJson} Filename is: ${filename}`);
   };
@@ -65,38 +69,41 @@ export default function FileUpload() {
   // }, [filename]);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FormField
-          control={form.control}
-          name="filePath"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="file-input" className="mb-2">
-                Upload here:
-              </FormLabel>
-              <FormControl>
-                {/* Have uncontrolled input, by passing onChange handler to the prop */}
-                <Input
-                  id="file-input"
-                  type="file"
-                  onChange={(e) =>
-                    field.onChange(e.target.files && e.target.files[0])
-                  }
-                  onBlur={field.onBlur}
-                  name={field.name}
-                />
-              </FormControl>
-              <FormDescription>
-                Only Excel/CSV files are supported!
-              </FormDescription>
-            </FormItem>
-          )}
-        />
-        <Button className="mt-2" type="submit">
-          Submit
-        </Button>
-      </form>
-    </Form>
+    <>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+            control={form.control}
+            name="filePath"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="file-input" className="mb-2">
+                  Upload here:
+                </FormLabel>
+                <FormControl>
+                  {/* Have uncontrolled input, by passing onChange handler to the prop */}
+                  <Input
+                    id="file-input"
+                    type="file"
+                    onChange={(e) =>
+                      field.onChange(e.target.files && e.target.files[0])
+                    }
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Only Excel/CSV files are supported!
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+          <Button className="mt-2" type="submit">
+            Submit
+          </Button>
+        </form>
+      </Form>
+      <Button onClick={() => router.push("/query")}>Query Datasets</Button>
+    </>
   );
 }

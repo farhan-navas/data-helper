@@ -25,18 +25,29 @@ import {
 } from "@/components/ui/table";
 
 const formSchema = z.object({
+  fileName: z.string().nonempty(),
   query: z.coerce.number().int().positive(),
 });
 
 export default function QueryNRows() {
+  const [files, setFiles] = useState([]);
   const [tableData, setTableData] = useState([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      fileName: "",
       query: 1,
     },
   });
+
+  const allForms = async () => {
+    const res = await fetch("http://localhost:8000/get-files", {
+      method: "GET",
+    });
+
+    console.log("Response is: ", res);
+  };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
@@ -59,6 +70,22 @@ export default function QueryNRows() {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+            control={form.control}
+            name="fileName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="file-name" className="mb-2">
+                  File Name:
+                </FormLabel>
+                <FormControl>
+                  <Input {...field} id="file-name" name={field.name} />
+                </FormControl>
+                <FormDescription>Enter the file name to query!</FormDescription>
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="query"
