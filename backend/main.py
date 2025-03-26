@@ -18,30 +18,46 @@ app.add_middleware(
 UPLOAD_DIR="uploaded_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+app.state.filename = None
+
 class inputData(BaseModel):
     filename: str
     question: str
+
+def get_pd_function(filename: str):
+    ext = filename.split(".")[-1]
+    if ext == "csv":
+        return pd.read_csv
+    elif ext in ["xlsx", "xls"]:
+        return pd.read_excel
+    else:
+        return None
 
 @app.post("/upload")
 async def upload_file(file: UploadFile):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         f.write(await file.read())
-    ext = file.filename.split(".")[-1]
-    if ext == "csv":
-        df = pd.read_csv(file_path)
-    elif ext in ["xlsx", "xls"]:
-        df = pd.read_excel(file_path)
-    else:
+    read_fn = get_pd_function(file.filename)
+    if read_fn is None:
         return {"error": "File format not supported"}
+    df = read_fn(file_path)
 
+    app.state.filename = file.filename
     return {"filename": file.filename, "shape": df.shape, "columns": df.columns.tolist()}
 
-@app.post("/query-top-rows")
-def get_top_rows(filename: str, n: int):
+@app.post("/query-n-rows")
+def get_top_rows(n: str):
+    filename = app.state.filename
+    print(f"filename: {filename}")
+    if filename is None:
+        return {"error": "No file uploaded"}
     file_path = os.path.join(UPLOAD_DIR, filename)
-    df = pd.read_csv(file_path)
+    read_fn = get_pd_function(filename)
+    if read_fn is None:
+        return {"error": "File format not supported"}
+    df = read_fn(file_path)
     if df is None:
         return {"error": f"File {filename} not found"}
-    return df.head(n).to_dict(orient="records")
+    return df.head(int(n)).to_dict(orient="records")
 

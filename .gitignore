@@ -9,9 +9,6 @@
 # python venv
 venv/
 
-# kaggle token
-.kaggle/
-
 # Python cache files
 __pycache__/
 *.pyc
