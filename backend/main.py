@@ -52,21 +52,20 @@ def get_filenames():
     return app.state.filename
 
 @app.post("/query-n-rows")
-def get_top_rows(query: int = Form(...)):
-    filename = app.state.filename[0]
-    print(app.state.filename, filename)
-    print(f"filename: {filename}")
-    if filename is None:
+def get_top_rows(query: int = Form(...), fileName: str = Form(...)):
+    if fileName is None:
         return {"error": "No file uploaded"}
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    read_fn = get_pd_function(filename)
+    file_path = os.path.join(UPLOAD_DIR, fileName)
+    read_fn = get_pd_function(fileName)
     if read_fn is None:
         return {"error": "File format not supported"}
     df = read_fn(file_path)
     if df is None:
-        return {"error": f"File {filename} not found"}
+        return {"error": f"File {fileName} not found"}
     
     # handle NaN values in the df
     cleaned = df.head(int(query)).replace({np.nan: None})
     return cleaned.to_dict(orient="records")
+
+    # return df.head(int(query)).to_dict(orient="records")
 

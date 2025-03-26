@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +23,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z.object({
   fileName: z.string().nonempty(),
@@ -30,7 +37,7 @@ const formSchema = z.object({
 });
 
 export default function QueryNRows() {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<string[]>([]);
   const [tableData, setTableData] = useState([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -41,20 +48,19 @@ export default function QueryNRows() {
     },
   });
 
-  const allForms = async () => {
-    const res = await fetch("http://localhost:8000/get-files", {
-      method: "GET",
-    });
-
-    console.log("Response is: ", res);
-  };
+  useEffect(() => {
+    const fetchFiles = async () => {
+      const res = await fetch("http://localhost:8000/get-files");
+      const resJson = await res.json();
+      setFiles(resJson);
+    };
+    fetchFiles();
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
     formData.append("query", data.query.toString());
-    for (const pair of formData.entries()) {
-      console.log(pair[0] + ", " + pair[1]);
-    }
+    formData.append("fileName", data.fileName);
 
     const res = await fetch("http://localhost:8000/query-n-rows", {
       method: "POST",
@@ -62,7 +68,6 @@ export default function QueryNRows() {
     });
 
     const resJson = await res.json();
-    console.log("ResJson for QueryNRows is: ", resJson);
     setTableData(resJson);
   };
 
@@ -78,9 +83,24 @@ export default function QueryNRows() {
                 <FormLabel htmlFor="file-name" className="mb-2">
                   File Name:
                 </FormLabel>
-                <FormControl>
-                  <Input {...field} id="file-name" name={field.name} />
-                </FormControl>
+                <Select
+                  {...field}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="-- Select a file --"></SelectValue>
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {files.map((file) => (
+                      <SelectItem key={file} value={file}>
+                        {file}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormDescription>Enter the file name to query!</FormDescription>
               </FormItem>
             )}
@@ -108,7 +128,9 @@ export default function QueryNRows() {
               </FormItem>
             )}
           />
-          <Button type="submit">Query</Button>
+          <Button className="mt-3" type="submit">
+            Query
+          </Button>
         </form>
       </Form>
       {tableData.length > 0 && (

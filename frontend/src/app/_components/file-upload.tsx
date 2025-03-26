@@ -43,22 +43,29 @@ export default function FileUpload() {
   });
 
   const onSubmit = async (data: z.infer<typeof fileSchema>) => {
-    const formData = new FormData();
-    formData.append("file", data.filePath);
-    for (const pair of formData.entries()) {
-      console.log(pair[0] + ", " + pair[1]);
+    try {
+      const formData = new FormData();
+      formData.append("file", data.filePath);
+      for (const pair of formData.entries()) {
+        console.log(pair[0] + ", " + pair[1]);
+      }
+
+      const res = await fetch("http://localhost:8000/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const resJson = await res.json();
+      toast.success(
+        `File uploaded successfully! Filename: ${resJson.filename}`
+      );
+    } catch (error) {
+      let errorMessage = "Error uploading file!";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(`Error uploading file: ${errorMessage}`);
     }
-
-    const res = await fetch("http://localhost:8000/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const resJson = await res.json();
-    // console.log("ResJson for FileUpload is: ", resJson);
-    toast(`File uploaded successfully! Filename: ${resJson.filename}`);
-    // setFilename(resJson.filename);
-    // console.log(`ResJson is: ${resJson} Filename is: ${filename}`);
   };
 
   // debug code just to check and display when filename is updated
@@ -98,12 +105,19 @@ export default function FileUpload() {
               </FormItem>
             )}
           />
-          <Button className="mt-2" type="submit">
+          <Button className="mt-4" type="submit">
             Submit
           </Button>
         </form>
       </Form>
-      <Button onClick={() => router.push("/query")}>Query Datasets</Button>
+      <div className="flex gap-2 m-auto align-middle items-center justify-center">
+        <div className="font-semibold text-gray-600">
+          Click here once done uploading your files!
+        </div>
+        <Button variant="outline" onClick={() => router.push("/query")}>
+          Query Datasets
+        </Button>
+      </div>
     </>
   );
 }
