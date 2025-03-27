@@ -1,14 +1,30 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from pandasai.llm.openai import OpenAI
-from pandasai.responses.response_parser import ResponseParser
-from pandasai import Agent, SmartDataframe
+from pandasai import SmartDataframe, Agent
 import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import os
+from pandasai.responses.response_serializer import ResponseSerializer
+
+original_serialize = ResponseSerializer.serialize
+
+def custom_serialize(result):
+    if result.get("type") == "plot":
+        filepath = result.get("value")
+        # If the file doesn't exist, force-save the current figure to that location.
+        if not os.path.exists(filepath):
+            fig = plt.gcf()
+            # Optional: print a debug message.
+            print(f"File {filepath} not found. Saving current figure to that path.")
+            fig.savefig(filepath)
+    return original_serialize(result)
+
+ResponseSerializer.serialize = custom_serialize
+
 from dotenv import load_dotenv
 import numpy as np
 import pandas as pd
@@ -21,36 +37,24 @@ llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo")
 
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=["*"],
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-UPLOAD_DIR="uploaded_files"
-CHARTS_DIR = "static"
+UPLOAD_DIR = "uploaded_files"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Use the desired charts directory (here: exports/charts)
+CHARTS_DIR = "exports/charts"
 os.makedirs(CHARTS_DIR, exist_ok=True)
 
 app.state.filename = []
 app.state.prompt_history = []
 
-# class CustomResponseParser(ResponseParser):
-#     def __init__(self, context):
-#         super().__init__(context)
-
-#     def format_plot(self, result):
-#         return {"type": "plot", "value": result}
-
-#     def format_string(self, result):
-#         return {"type": "string", "value": result}
-    
-#     def format_dataframe(self, result):
-#         return {"type": "dataframe", "value": result.to_dict(orient="records")}
-
+class inputData(BaseModel):
+    filename: str
+    question: str
 
 def get_pd_function(filename: str):
     ext = filename.split(".")[-1]
@@ -66,12 +70,10 @@ async def upload_file(file: UploadFile):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as f:
         f.write(await file.read())
-
     read_fn = get_pd_function(file.filename)
     if read_fn is None:
         return {"error": "File format not supported"}
     df = read_fn(file_path)
-
     app.state.filename.append(file.filename)
     return {"filename": file.filename, "shape": df.shape, "columns": df.columns.tolist()}
 
@@ -85,12 +87,9 @@ def get_top_rows(query: int = Form(...), fileName: str = Form(...)):
     read_fn = get_pd_function(fileName)
     if read_fn is None:
         return {"error": "File format not supported"}
-    
     df = read_fn(file_path)
     if df is None:
         return {"error": f"File {fileName} not found"}
-    
-    # handle NaN values in the df
     cleaned = df.head(int(query)).replace({np.nan: None})
     return cleaned.to_dict(orient="records")
 
@@ -109,69 +108,58 @@ def open_ai_prompt(prompt: str = Form(...), fileName: str = Form(...)):
     read_fn = get_pd_function(fileName)
     if read_fn is None:
         return {"error": "File format not supported"}
-    
-    df = read_fn(file_path).replace({np.nan: None})
+    df = read_fn(file_path)
     if df is None:
         return {"error": f"File {fileName} not found"}
+    
+    chart_path = os.path.join(os.getcwd(), CHARTS_DIR)
+    df_copy = df.copy()
 
-    # agent = Agent(df, config={
-    #     "llm": llm, 
+    # smart_df = SmartDataframe(df_copy, name=fileName, config={
+    #     "llm": llm,
     #     "cache": True,
-    #     "save_charts": True,
-    #     "save_charts_path": CHARTS_DIR,
-    #     # "response_parser": CustomResponseParser,
-    #     },
-    # )
+    #     "save_charts": True,           
+    #     "save_charts_path": chart_path
+    # })
 
-    agent = SmartDataframe(df, config={
-        "llm": llm, 
+    smart_df = Agent(df_copy, config={
+        "llm": llm,
         "cache": True,
-        "save_charts": True,
-        "save_charts_path": CHARTS_DIR,
-        # "response_parser": CustomResponseParser,
+        "save_charts": True,           
+        "save_charts_path": chart_path
     })
 
     try:
-        response = agent.chat(prompt) 
-
-        if isinstance(response, dict) and "type" in response and "value" in response:
-            res_type = response["type"]
-            value = response["value"]
-
-            if res_type == "plot":
-                image_url = f"/static/{os.path.relpath(value, 'static')}"
-                convo_entry = {
-                    "file": fileName,
-                    "question": prompt,
-                    "type": "plot",
-                    "response": image_url
-                }
-            elif res_type == "dataframe":
-                convo_entry = {
-                    "file": fileName,
-                    "question": prompt,
-                    "type": "dataframe",
-                    "response": value
-                }
-            else:
-                convo_entry = {
-                    "file": fileName,
-                    "question": prompt,
-                    "type": res_type,
-                    "response": value
-                }
-
-        else:
-            # fallback: response is plain string or not typed
-            convo_entry = {
-                "file": fileName,
-                "question": prompt,
-                "type": "string",
-                "response": str(response)
-            }
-
+        response = smart_df.chat(prompt)
+        print(f"Response is: {response}")
+        convo_entry = {"file": fileName, "question": prompt, "response": response}
         app.state.prompt_history.append(convo_entry)
-        return convo_entry
-            
+
+        # if isinstance(response, dict):
+        #     print(f"Response type: {response.get('type')}")
+        #     response_type = response.get("type")
+        #     value = response.get("value")
+        #     if response_type == "plot":
+        #         currname = os.path.basename(value)
+        #         return {
+        #             "type": "plot",
+        #             "image_url": f"/exports/charts/{currname}"
+        #         }
+        #     elif response_type == "dataframe":
+        #         return {
+        #             "type": "dataframe",
+        #             "value": value.to_dict(orient="records")
+        #         }
+        #     else:
+        #         return {
+        #             "type": response_type,
+        #             "value": value
+        #         }
+        
+        print("in here")
+        return {
+            "type": "string",
+            "value": str(response)
+        }
     except Exception as e:
         return {"error": str(e)}
