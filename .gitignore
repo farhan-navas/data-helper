@@ -9,13 +9,17 @@
 # python venv
 venv/
 
-# Python cache files
+# python cache files
 __pycache__/
 *.pyc
 cache/
 
-# Uploaded files
+# uploaded files
 uploaded_files/
 
-# Logs
+# temp files
+static/
+exports/
+
+# logs
 pandasai.log
