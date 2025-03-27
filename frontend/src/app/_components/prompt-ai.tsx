@@ -14,15 +14,6 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -32,18 +23,17 @@ import {
 
 const formSchema = z.object({
   fileName: z.string().nonempty(),
-  query: z.coerce.number().int().positive(),
+  prompt: z.string().nonempty(),
 });
 
-export default function PromptComponent() {
+export default function PromptAI() {
   const [files, setFiles] = useState<string[]>([]);
-  const [tableData, setTableData] = useState([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fileName: "",
-      query: 1,
+      prompt: "",
     },
   });
 
@@ -58,7 +48,7 @@ export default function PromptComponent() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("query", data.query.toString());
+    formData.append("inputData", data.prompt);
     formData.append("fileName", data.fileName);
 
     const res = await fetch("http://localhost:8000/query-n-rows", {
@@ -67,7 +57,7 @@ export default function PromptComponent() {
     });
 
     const resJson = await res.json();
-    setTableData(resJson);
+    console.log(resJson);
   };
 
   return (
@@ -106,7 +96,7 @@ export default function PromptComponent() {
 
           <FormField
             control={form.control}
-            name="query"
+            name="prompt"
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormLabel htmlFor="query-n" className="mb-2">
@@ -128,27 +118,6 @@ export default function PromptComponent() {
           </Button>
         </form>
       </Form>
-      {tableData.length > 0 && (
-        <Table>
-          <TableCaption>Data starting from the first row:</TableCaption>
-          <TableHeader>
-            <TableRow>
-              {Object.keys(tableData[0]).map((key) => (
-                <TableHead key={key}>{key}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tableData.map((row, index) => (
-              <TableRow key={index}>
-                {Object.values(row).map((value, index) => (
-                  <TableCell key={index}>{String(value)}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
     </>
   );
 }

@@ -1,7 +1,9 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from openai import OpenAI
+from pandasai.llm.openai import OpenAI
+from pandasai import SmartDataframe
+
 from dotenv import load_dotenv
 import numpy as np
 import pandas as pd
@@ -10,7 +12,8 @@ import os
 app = FastAPI()
 
 load_dotenv()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+llm = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -72,8 +75,17 @@ def get_top_rows(query: int = Form(...), fileName: str = Form(...)):
     cleaned = df.head(int(query)).replace({np.nan: None})
     return cleaned.to_dict(orient="records")
 
+@app.get("/get-prompt-history")
+def get_prompt_history():
+    return app.state.prompt_history
+
+@app.delete("/delete-prompt-history")
+def delete_prompt_history():
+    app.state.prompt_history = []
+    return {"response": "Prompt history deleted"}
+
 @app.post("/prompt-open-ai")
-def open_ai_prompt(inputData: str = Form(...), fileName: str = Form(...)):
+def open_ai_prompt(prompt: str = Form(...), fileName: str = Form(...)):
     file_path = os.path.join(UPLOAD_DIR, fileName)
     read_fn = get_pd_function(fileName)
     if read_fn is None:
@@ -83,19 +95,12 @@ def open_ai_prompt(inputData: str = Form(...), fileName: str = Form(...)):
     if df is None:
         return {"error": f"File {fileName} not found"}
     
-    sample_rows = df.head(5).replace({np.nan: None}).to_dict(orient="records")
-    system_prompt = f"""
-    Imagine you are a data analytics expert. Here's some sample data from the dataset called
-    {fileName}: {sample_rows}. Given the following data, answer the following question: {inputData}
-    """
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": ""}
-        ]
-    )
+    smart_df = SmartDataframe(df, name=fileName, config={"llm": llm})
 
-    return {"response": completion.choices[0].message.content.strip()}
-
-
+    try:
+        response = smart_df.chat(prompt)
+        convo_entry = {"file": fileName, "question": prompt, "response": str(response)}
+        app.state.prompt_history.append(convo_entry)
+        return {"response": str(response)}
+    except Exception as e:
+        return {"error": str(e)}

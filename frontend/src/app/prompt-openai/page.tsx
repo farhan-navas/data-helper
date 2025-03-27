@@ -1,4 +1,4 @@
-import PromptComponent from "../_components/prompt-ai";
+import PromptAI from "../_components/prompt-ai";
 
 export default function PromptOpenAI() {
   return (
@@ -8,7 +8,7 @@ export default function PromptOpenAI() {
         <h2 className="text-lg font-semibold text-gray-600">
           Ask questions to OpenAI&apos;s GPT-4o-mini model about your dataset!
         </h2>
-        <PromptComponent />
+        <PromptAI />
       </div>
     </div>
   );

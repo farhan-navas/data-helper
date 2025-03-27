@@ -12,6 +12,10 @@ venv/
 # Python cache files
 __pycache__/
 *.pyc
+cache/
 
 # Uploaded files
 uploaded_files/
+
+# Logs
+pandasai.log
