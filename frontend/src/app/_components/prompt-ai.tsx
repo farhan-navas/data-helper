@@ -117,7 +117,7 @@ export default function PromptAI() {
             render={({ field }) => (
               <FormItem className="mt-4">
                 <FormLabel htmlFor="prompt-qn" className="mb-2">
-                  Enter number of rows to retreive:
+                  Enter your prompt:
                 </FormLabel>
                 <FormControl>
                   <Textarea
@@ -144,16 +144,8 @@ export default function PromptAI() {
           <ScrollArea className="rouded-md mt-4 h-[300px] w-full">
             {promptHistory.map((convo, index) => (
               <div key={index}>
-                <ChatMessage
-                  key={index * 2}
-                  message={convo.question}
-                  isUser={true}
-                />
-                <ChatMessage
-                  key={index * 2 + 1}
-                  message={convo.response}
-                  isUser={false}
-                />
+                <ChatMessage message={convo.question} isUser={true} />
+                <ChatMessage message={convo.response} isUser={false} />
               </div>
             ))}
           </ScrollArea>

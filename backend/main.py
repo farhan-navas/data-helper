@@ -1,6 +1,5 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from pandasai.llm.openai import OpenAI
 from pandasai import SmartDataframe, Agent
 import matplotlib
@@ -51,10 +50,6 @@ os.makedirs(CHARTS_DIR, exist_ok=True)
 
 app.state.filename = []
 app.state.prompt_history = []
-
-class inputData(BaseModel):
-    filename: str
-    question: str
 
 def get_pd_function(filename: str):
     ext = filename.split(".")[-1]

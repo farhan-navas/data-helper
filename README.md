@@ -1,15 +1,49 @@
 # Data Helper
 
-Data helper is a full-stack app built using a Next.js frontend and a Python backend.
+Data helper is a full-stack app built using a Next.js frontend and a Python backend, which I created for the Cyber Sierra full stack challenge. Data Helper was built over the course of about 3/4 days, in the middle of a hectic school week (2 weeks before finals!!). Despite the tough time schedule, I am still quite proud of how it turned out :)
 
-### Frontend
+## Features
 
-I use Next.js as it is a framework that I am very familiar with. Next.js also provides alot of useful functionality right off the bat such as server-side rendering, routing and static site generation.
+- Upload CSX/XLSX datasets
+- Query top N rows from uploaded files
+- Ask OpenAI natural language questions about dataset (with the help of PandasAI)
+- View prompt/response history (in chat form) with OpenAI
+- Support for charts/plots/graphs via OpenAI and matplotlib
+
+## Frontend
+
+I use Next.js, a very popular React framework, as I am very familiar with it. Next.js also provides alot of powerful functionality right off the bat such as server-side rendering, API routing and static site generation.
+
+Using Next.js meant I had to do quite abit of custom styling, compared to if I used something like Streamlit for the frontend. However, this gave me the flexibility to build a cleaner and more responsive UI.
+
+### Home Page
+
+![](public/homepage.png)
+_Home page with submitted Titanic-dataset.csv_
+
+### Query Dataset Page
+
+![](public/query.png)
+_Query to get top N rows, and its display_
+
+### Prompt OpenAI Page
+
+![](public/prompt.png)
+_Asking OpenAI a natural language question about the dataset_
 
 ### Backend
 
-For the backend, I will be using Python and the FastAPI as it is designed for building fast and efficient backend APIs. It is also very lightweight and thus will be very good for AI APIs.
+The backend is built using Python + FastAPI. I chose FastAPI for several reasons:
 
-### Database
+- High performance (async support)
+- Lightweight and modern design
+- Native support for async routes and OpenAI streaming
+- Automatic data validation and docs via Pydantic and OpenAPI
 
-For the databse, I will be using a Vercel provisioned PostgreSQL database, which I will use to store prompt history, file metadata and feedback. I opted to use Postgres instead of something more complex like a Pinecone Vector DB (which I have used previously for my own full stack AI chatbot app) because the data is already structured and all we are doing is interacting with tables and interpreting them.
+As NUS RHDevs Backend Head, I’ve had lots of experience working with Python & Flask backends. This meant that FastAPI felt familiar, but even more powerful and modern, especially for applications that involve AI integrations as I had read online.
+
+I was also quite interested to use Microsoft's LIDA and I feel like it would've enhanced the app's ability to auto-generate descriptive stats or dashboards. Unfortunately, I ran out of time during the challenge, but if I had just a few more days, LIDA would have been the next feature I'd integrate.
+
+### Deployment
+
+I'm planning to deploy this app using Railway as I will be able to easily host both the Python FastAPI backend as well as the Next.js frontend.
