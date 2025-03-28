@@ -6,7 +6,7 @@ export default function PromptOpenAI() {
       <div className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
         <h1 className="text-4xl font-bold">Prompt OpenAI</h1>
         <h2 className="text-lg font-semibold text-gray-600">
-          Ask questions to OpenAI&apos;s GPT-4o-mini model about your dataset!
+          Ask questions to OpenAI&apos;s GPT model about your dataset!
         </h2>
         <PromptAI />
       </div>

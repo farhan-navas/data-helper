@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -20,14 +20,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChatMessage } from "./chat-message";
 
 const formSchema = z.object({
   fileName: z.string().nonempty(),
   prompt: z.string().nonempty(),
 });
 
+interface PromptHistory {
+  file: string;
+  question: string;
+  response: string;
+}
+
 export default function PromptAI() {
   const [files, setFiles] = useState<string[]>([]);
+  const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -48,16 +57,24 @@ export default function PromptAI() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const formData = new FormData();
-    formData.append("inputData", data.prompt);
+    formData.append("prompt", data.prompt);
     formData.append("fileName", data.fileName);
+    console.log("Form data:", formData);
 
-    const res = await fetch("http://localhost:8000/query-n-rows", {
+    const res = await fetch("http://localhost:8000/prompt-open-ai", {
       method: "POST",
       body: formData,
     });
 
     const resJson = await res.json();
     console.log(resJson);
+
+    const fetchPromptHistory = async () => {
+      const res = await fetch("http://localhost:8000/get-prompt-history");
+      const resJson = await res.json();
+      setPromptHistory(resJson);
+    };
+    fetchPromptHistory();
   };
 
   return (
@@ -99,25 +116,49 @@ export default function PromptAI() {
             name="prompt"
             render={({ field }) => (
               <FormItem className="mt-4">
-                <FormLabel htmlFor="query-n" className="mb-2">
+                <FormLabel htmlFor="prompt-qn" className="mb-2">
                   Enter number of rows to retreive:
                 </FormLabel>
                 <FormControl>
-                  <Input
+                  <Textarea
                     {...field}
-                    id="query-n"
+                    id="prompt-qn"
                     name={field.name}
-                    type="number"
+                    placeholder="What would you like to know about the dataset?"
                   />
                 </FormControl>
               </FormItem>
             )}
           />
           <Button className="mt-3" type="submit">
-            Query
+            Prompt OpenAI
           </Button>
         </form>
       </Form>
+
+      {promptHistory.length > 0 && (
+        <>
+          <h2 className="text-lg font-semibold text-gray-600 mt-8">
+            Current file is: {promptHistory[0].file}
+          </h2>
+          <ScrollArea className="rouded-md mt-4 h-[300px] w-full">
+            {promptHistory.map((convo, index) => (
+              <div key={index}>
+                <ChatMessage
+                  key={index * 2}
+                  message={convo.question}
+                  isUser={true}
+                />
+                <ChatMessage
+                  key={index * 2 + 1}
+                  message={convo.response}
+                  isUser={false}
+                />
+              </div>
+            ))}
+          </ScrollArea>
+        </>
+      )}
     </>
   );
 }
