@@ -31,7 +31,7 @@ _Query to get top N rows, and its display_
 ![](public/prompt.png)
 _Asking OpenAI a natural language question about the dataset_
 
-### Backend
+## Backend
 
 The backend is built using Python + FastAPI. I chose FastAPI for several reasons:
 
@@ -44,6 +44,6 @@ As NUS RHDevs Backend Head, I’ve had lots of experience working with Python & 
 
 I was also quite interested to use Microsoft's LIDA and I feel like it would've enhanced the app's ability to auto-generate descriptive stats or dashboards. Unfortunately, I ran out of time during the challenge, but if I had just a few more days, LIDA would have been the next feature I'd integrate.
 
-### Deployment
+## Deployment
 
 I'm planning to deploy this app using Railway as I will be able to easily host both the Python FastAPI backend as well as the Next.js frontend.
