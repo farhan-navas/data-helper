@@ -18,7 +18,7 @@ Using Next.js meant I had to do quite abit of custom styling, compared to if I u
 
 ### Home Page
 
-![](public/homepage.png)
+![](public/home.png)
 _Home page with submitted Titanic-dataset.csv_
 
 ### Query Dataset Page
