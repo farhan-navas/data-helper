@@ -46,4 +46,4 @@ I was also quite interested to use Microsoft's LIDA and I feel like it would've 
 
 ## Deployment
 
-I'm planning to deploy this app using Railway as I will be able to easily host both the Python FastAPI backend as well as the Next.js frontend.
+I used Railway to deploy this app as I will be able to easily host both the Python FastAPI backend as well as the Next.js frontend, using a Monorepo config. The link to my live site is included in the repo bio, do check it out!
