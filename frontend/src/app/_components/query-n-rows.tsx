@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { API_URL } from "@/lib/config";
 
 const formSchema = z.object({
   fileName: z.string().nonempty(),
@@ -49,7 +50,7 @@ export default function QueryNRows() {
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const res = await fetch("http://localhost:8000/get-files");
+      const res = await fetch(`${API_URL}/get-files`);
       const resJson = await res.json();
       setFiles(resJson);
     };
@@ -61,7 +62,7 @@ export default function QueryNRows() {
     formData.append("query", data.query.toString());
     formData.append("fileName", data.fileName);
 
-    const res = await fetch("http://localhost:8000/query-n-rows", {
+    const res = await fetch(`${API_URL}/query-n-rows`, {
       method: "POST",
       body: formData,
     });

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "./chat-message";
+import { API_URL } from "@/lib/config";
 
 const formSchema = z.object({
   fileName: z.string().nonempty(),
@@ -48,7 +49,7 @@ export default function PromptAI() {
 
   useEffect(() => {
     const fetchFiles = async () => {
-      const res = await fetch("http://localhost:8000/get-files");
+      const res = await fetch(`${API_URL}/get-files`);
       const resJson = await res.json();
       setFiles(resJson);
     };
@@ -61,7 +62,7 @@ export default function PromptAI() {
     formData.append("fileName", data.fileName);
     console.log("Form data:", formData);
 
-    const res = await fetch("http://localhost:8000/prompt-open-ai", {
+    const res = await fetch(`${API_URL}/prompt-open-ai`, {
       method: "POST",
       body: formData,
     });
@@ -70,7 +71,7 @@ export default function PromptAI() {
     console.log(resJson);
 
     const fetchPromptHistory = async () => {
-      const res = await fetch("http://localhost:8000/get-prompt-history");
+      const res = await fetch(`${API_URL}/get-prompt-history`);
       const resJson = await res.json();
       setPromptHistory(resJson);
     };

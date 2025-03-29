@@ -15,8 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Navigation from "./navigation";
-// import { useState } from "react";
-// import { useEffect } from "react";
+import { API_URL } from "@/lib/config";
 
 const fileSchema = z.object({
   filePath: z
@@ -47,7 +46,7 @@ export default function FileUpload() {
         console.log(pair[0] + ", " + pair[1]);
       }
 
-      const res = await fetch("http://localhost:8000/upload", {
+      const res = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       });

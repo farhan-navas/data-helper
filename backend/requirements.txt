@@ -10,6 +10,7 @@ distro==1.9.0
 dnspython==2.7.0
 duckdb==1.2.1
 email_validator==2.2.0
+et_xmlfile==2.0.0
 Faker==19.13.0
 fastapi==0.115.12
 fastapi-cli==0.0.7
@@ -28,6 +29,7 @@ matplotlib==3.10.1
 mdurl==0.1.2
 numpy==1.24.4
 openai==1.68.2
+openpyxl==3.1.5
 packaging==24.2
 pandas==1.5.3
 pandasai==2.4.2
