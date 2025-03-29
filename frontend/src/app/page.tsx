@@ -1,7 +1,7 @@
+"use client"; // fix deployment issue
+
 import FileUpload from "./_components/file-upload";
 import Footer from "./_components/footer";
-
-// const STATES = ["idle", "loading", "success", "error"];
 
 export default function Home() {
   return (
